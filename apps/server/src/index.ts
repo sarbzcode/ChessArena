@@ -2,7 +2,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { Server } from "socket.io";
 import { registerSocketHandlers } from "./socket/handlers";
-import { ClientToServerEvents, ServerToClientEvents } from "./types/shared";
+import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from "./types/shared";
 
 const app = Fastify({ logger: true });
 
@@ -11,7 +11,7 @@ const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
 
 app.get("/health", async () => ({ ok: true }));
 
-const io = new Server<ServerToClientEvents, ClientToServerEvents>(app.server, {
+const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(app.server, {
   cors: {
     origin: [CLIENT_ORIGIN],
     credentials: true
