@@ -1,0 +1,8 @@
+node_modules
+**/node_modules
+dist
+apps/**/dist
+.git
+.gitignore
+*.log
+README.md
