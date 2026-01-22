@@ -16,7 +16,7 @@ import {
 import { dequeue, enqueue, isQueued, popMatchPair } from "./queue";
 import { ClientToServerEvents, ServerToClientEvents } from "../types/shared";
 
-type TypedServer = Server<ServerToClientEvents, ClientToServerEvents>;
+type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
 
 const ROOM_ID_LENGTH = 6;
 const ROOM_TTL_MS = 2 * 60 * 1000;
