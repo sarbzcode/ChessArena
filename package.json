@@ -1,0 +1,21 @@
+{
+  "name": "chess-arena",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,server -c cyan,magenta \"npm run dev --workspace apps/web\" \"npm run dev --workspace apps/server\"",
+    "dev:web": "npm run dev --workspace apps/web",
+    "dev:server": "npm run dev --workspace apps/server",
+    "build": "npm run build --workspace apps/web && npm run build --workspace apps/server",
+    "lint": "npm run lint --workspace apps/web && npm run lint --workspace apps/server",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5"
+  }
+}
