@@ -1,5 +1,5 @@
 import { randomBytes } from "crypto";
-import { Server, Socket } from "socket.io";
+import { Server } from "socket.io";
 import { applyValidatedMove } from "../game/validateMove";
 import { getResultText, getStatusText } from "../game/gameState";
 import {
@@ -14,10 +14,13 @@ import {
   Room
 } from "./rooms";
 import { dequeue, enqueue, isQueued, popMatchPair } from "./queue";
-import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from "../types/shared";
+import { ClientToServerEvents, ServerToClientEvents } from "../types/shared";
 
-type TypedServer = Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
-type TypedSocket = Socket<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>;
+type TypedServer = Server<ClientToServerEvents, ServerToClientEvents>;
+type RoomJoinPayload = Parameters<ClientToServerEvents["room:join"]>[0];
+type MoveMakePayload = Parameters<ClientToServerEvents["move:make"]>[0];
+type SyncRequestPayload = Parameters<ClientToServerEvents["sync:request"]>[0];
+type GameResignPayload = Parameters<ClientToServerEvents["game:resign"]>[0];
 
 const ROOM_ID_LENGTH = 6;
 const ROOM_TTL_MS = 2 * 60 * 1000;
@@ -71,7 +74,7 @@ function startRoomCleanup(io: TypedServer): void {
 export function registerSocketHandlers(io: TypedServer): void {
   startRoomCleanup(io);
 
-  io.on("connection", (socket: TypedSocket) => {
+  io.on("connection", (socket) => {
     const authClientId = typeof socket.handshake.auth?.clientId === "string" ? socket.handshake.auth.clientId : undefined;
     socket.data.clientId = authClientId ?? socket.id;
 
@@ -86,7 +89,8 @@ export function registerSocketHandlers(io: TypedServer): void {
       await emitRoomStateToSockets(io, room);
     });
 
-    socket.on("room:join", async ({ roomId }) => {
+    socket.on("room:join", async (payload: RoomJoinPayload) => {
+      const { roomId } = payload;
       const room = getRoom(roomId);
       if (!room) {
         socket.emit("move:rejected", { reason: "Room not found" });
@@ -139,7 +143,8 @@ export function registerSocketHandlers(io: TypedServer): void {
       socket.emit("queue:status", { searching: false });
     });
 
-    socket.on("move:make", async ({ roomId, from, to, promotion }) => {
+    socket.on("move:make", async (payload: MoveMakePayload) => {
+      const { roomId, from, to, promotion } = payload;
       const room = getRoom(roomId);
       if (!room) {
         socket.emit("move:rejected", { reason: "Room not found" });
@@ -167,7 +172,8 @@ export function registerSocketHandlers(io: TypedServer): void {
       }
     });
 
-    socket.on("sync:request", async ({ roomId }) => {
+    socket.on("sync:request", async (payload: SyncRequestPayload) => {
+      const { roomId } = payload;
       const room = getRoom(roomId);
       if (!room) {
         socket.emit("move:rejected", { reason: "Room not found" });
@@ -176,7 +182,8 @@ export function registerSocketHandlers(io: TypedServer): void {
       await emitRoomStateToSockets(io, room);
     });
 
-    socket.on("game:resign", async ({ roomId }) => {
+    socket.on("game:resign", async (payload: GameResignPayload) => {
+      const { roomId } = payload;
       const room = getRoom(roomId);
       if (!room) {
         socket.emit("move:rejected", { reason: "Room not found" });

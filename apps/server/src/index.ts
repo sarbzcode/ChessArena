@@ -2,17 +2,22 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { Server } from "socket.io";
 import { registerSocketHandlers } from "./socket/handlers";
-import { ClientToServerEvents, InterServerEvents, ServerToClientEvents, SocketData } from "./types/shared";
+import { ClientToServerEvents, ServerToClientEvents } from "./types/shared";
 
 const app = Fastify({ logger: true });
 
-const PORT = Number(process.env.PORT ?? 8080);
+const PORT = Number(process.env.PORT ?? 3001);
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
 
-app.get("/health", async () => ({ ok: true }));
-app.get("/", async () => "ChessArena server is running");
+app.addHook("onSend", async (_request, reply, payload) => {
+  reply.header("Cross-Origin-Opener-Policy", "same-origin");
+  reply.header("Cross-Origin-Embedder-Policy", "require-corp");
+  return payload;
+});
 
-const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(app.server, {
+app.get("/health", async () => ({ ok: true }));
+
+const io = new Server<ServerToClientEvents, ClientToServerEvents>(app.server, {
   cors: {
     origin: [CLIENT_ORIGIN],
     credentials: true

@@ -3,13 +3,14 @@ import Stockfish from "stockfish.wasm";
 import mainScriptUrl from "stockfish.wasm/stockfish.js?url";
 import wasmUrl from "stockfish.wasm/stockfish.wasm?url";
 import workerUrl from "stockfish.wasm/stockfish.worker.js?url";
-import { getSettings, Difficulty } from "./difficulty";
+import { getSettings, Difficulty, AiMode } from "./difficulty";
 
 type WorkerRequest = {
   type: "bestmove";
   id: string;
   fen: string;
   difficulty: Difficulty;
+  mode?: AiMode;
   retry?: boolean;
 };
 
@@ -71,7 +72,7 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
   }
   const engine = await ensureEngine();
   currentId = message.id;
-  const settings = getSettings(message.difficulty, message.retry);
+  const settings = getSettings(message.difficulty, message.retry, message.mode ?? "ai");
   engine.postMessage("ucinewgame");
   engine.postMessage(`setoption name Skill Level value ${settings.skill}`);
   engine.postMessage(`position fen ${message.fen}`);

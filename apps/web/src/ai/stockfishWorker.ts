@@ -1,9 +1,10 @@
 import { Chess } from "chess.js";
-import { Difficulty } from "./difficulty";
+import { AiMode, Difficulty } from "./difficulty";
 
 type PendingRequest = {
   fen: string;
   difficulty: Difficulty;
+  mode: AiMode;
   retry: boolean;
   resolve: (move: { from: string; to: string; promotion?: string }) => void;
   reject: (error: Error) => void;
@@ -33,7 +34,14 @@ function ensureWorker(): Worker {
     const parsed = parseUciMove(bestMove);
     if (!parsed || !isValidMove(request.fen, parsed)) {
       if (!request.retry) {
-        sendBestMoveRequest(request.fen, request.difficulty, true, request.resolve, request.reject);
+        sendBestMoveRequest(
+          request.fen,
+          request.difficulty,
+          request.mode,
+          true,
+          request.resolve,
+          request.reject
+        );
         return;
       }
       request.reject(new Error("Engine returned invalid move"));
@@ -73,21 +81,23 @@ function isValidMove(fen: string, move: { from: string; to: string; promotion?: 
 function sendBestMoveRequest(
   fen: string,
   difficulty: Difficulty,
+  mode: AiMode,
   retry: boolean,
   resolve: PendingRequest["resolve"],
   reject: PendingRequest["reject"]
 ) {
   const id = `${Date.now()}-${requestId++}`;
-  pending.set(id, { fen, difficulty, retry, resolve, reject });
-  ensureWorker().postMessage({ type: "bestmove", id, fen, difficulty, retry });
+  pending.set(id, { fen, difficulty, mode, retry, resolve, reject });
+  ensureWorker().postMessage({ type: "bestmove", id, fen, difficulty, mode, retry });
 }
 
 export function getBestMove(
   fen: string,
-  difficulty: Difficulty
+  difficulty: Difficulty,
+  mode: AiMode = "ai"
 ): Promise<{ from: string; to: string; promotion?: string }> {
   return new Promise((resolve, reject) => {
-    sendBestMoveRequest(fen, difficulty, false, resolve, reject);
+    sendBestMoveRequest(fen, difficulty, mode, false, resolve, reject);
   });
 }
 

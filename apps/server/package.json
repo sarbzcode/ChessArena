@@ -1,5 +1,6 @@
 {
   "name": "@chess-arena/server",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",

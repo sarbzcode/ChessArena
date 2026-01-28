@@ -1,4 +1,5 @@
 import AiControls from "./mode/AiControls";
+import AiVsAiControls from "./mode/AiVsAiControls";
 import MultiplayerControls from "./mode/MultiplayerControls";
 import FindOpponentControls from "./mode/FindOpponentControls";
 import StatusBanner from "./StatusBanner";
@@ -10,7 +11,7 @@ const RightPanel = () => {
   const startAiGame = useGameStore((state) => state.startAiGame);
 
   const handleNewGame = () => {
-    if (mode === "ai") {
+    if (mode === "ai" || mode === "aivsai") {
       startAiGame();
       return;
     }
@@ -28,6 +29,7 @@ const RightPanel = () => {
           <p className="text-xs uppercase tracking-[0.2em] text-white/50">Mode Controls</p>
           <div className="mt-3 space-y-4">
             {mode === "ai" && <AiControls />}
+            {mode === "aivsai" && <AiVsAiControls />}
             {mode === "multiplayer" && <MultiplayerControls />}
             {mode === "find" && <FindOpponentControls />}
           </div>

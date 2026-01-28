@@ -5,7 +5,7 @@ import { getStatusFromChess, isGameOverStatus } from "../game/format";
 import { resetStockfishWorker } from "../ai/stockfishWorker";
 import { RoomState } from "../types/shared";
 
-export type GameMode = "ai" | "multiplayer" | "find";
+export type GameMode = "ai" | "aivsai" | "multiplayer" | "find";
 export type Difficulty = "beginner" | "intermediate" | "expert";
 export type PlayerRole = "w" | "b" | "spectator";
 export type ConnectionStatus = "connected" | "disconnected";
@@ -66,7 +66,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setMode: (mode) => {
     const currentMode = get().mode;
     set({ mode, error: null });
-    if (mode === "ai" && currentMode !== "ai") {
+    if ((mode === "ai" || mode === "aivsai") && currentMode !== mode) {
       get().startAiGame();
     }
   },

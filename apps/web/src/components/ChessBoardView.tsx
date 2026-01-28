@@ -29,18 +29,21 @@ const ChessBoardView = () => {
   const setAiThinking = useGameStore((state) => state.setAiThinking);
   const syncFromChess = useGameStore((state) => state.syncFromChess);
 
+  const isAiMode = mode === "ai" || mode === "aivsai";
+  const isAiVsAi = mode === "aivsai";
   const aiGameRef = useRef<Chess>(getAiGame());
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [highlightSquares, setHighlightSquares] = useState<Record<string, CSSProperties>>({});
   const [promotionPending, setPromotionPending] = useState<PromotionState | null>(null);
 
   useEffect(() => {
-    if (mode === "ai") {
+    if (isAiMode) {
       aiGameRef.current = getAiGame();
       setSelectedSquare(null);
       setHighlightSquares({});
       const chess = aiGameRef.current;
-      if (!chess.isGameOver() && chess.turn() !== aiSide) {
+      const shouldMove = isAiVsAi || chess.turn() !== aiSide;
+      if (!chess.isGameOver() && shouldMove) {
         void triggerAiMove(aiSessionId);
       }
     }
@@ -50,6 +53,9 @@ const ChessBoardView = () => {
   const boardOrientation = useMemo(() => {
     if (mode === "ai") {
       return aiSide === "w" ? "white" : "black";
+    }
+    if (mode === "aivsai") {
+      return "white";
     }
     if (myColor === "b") {
       return "black";
@@ -70,16 +76,27 @@ const ChessBoardView = () => {
 
   const triggerAiMove = async (sessionId: number) => {
     const chess = aiGameRef.current;
-    if (aiThinking || chess.isGameOver()) {
+    const { mode: currentMode, aiThinking: currentThinking, aiSide: currentSide } =
+      useGameStore.getState();
+    if (
+      (currentMode !== "ai" && currentMode !== "aivsai") ||
+      currentThinking ||
+      chess.isGameOver()
+    ) {
+      return;
+    }
+    if (currentMode === "ai" && chess.turn() === currentSide) {
       return;
     }
     setAiThinking(true);
+    let queueNextMove = false;
     try {
-      const bestMove = await getBestMove(chess.fen(), aiDifficulty);
+      const currentDifficulty = useGameStore.getState().aiDifficulty;
+      const bestMove = await getBestMove(chess.fen(), currentDifficulty, currentMode);
       if (useGameStore.getState().aiSessionId !== sessionId) {
         return;
       }
-      const delayMs = getMoveDelayMs(aiDifficulty);
+      const delayMs = getMoveDelayMs(currentDifficulty);
       if (delayMs > 0) {
         await new Promise((resolve) => setTimeout(resolve, delayMs));
         if (useGameStore.getState().aiSessionId !== sessionId) {
@@ -89,11 +106,15 @@ const ChessBoardView = () => {
       const applied = chess.move(bestMove);
       if (applied) {
         syncFromChess(chess);
+        queueNextMove = useGameStore.getState().mode === "aivsai" && !chess.isGameOver();
       }
     } catch (error) {
       useGameStore.getState().setError("AI move failed. Try again.");
     } finally {
       setAiThinking(false);
+      if (queueNextMove) {
+        void triggerAiMove(sessionId);
+      }
     }
   };
 
@@ -103,21 +124,21 @@ const ChessBoardView = () => {
   };
 
   const getMoveTargets = (square: string): string[] => {
-    const chess = mode === "ai" ? aiGameRef.current : new Chess(fen);
+    const chess = isAiMode ? aiGameRef.current : new Chess(fen);
     return chess
       .moves({ square, verbose: true })
       .map((move) => move.to);
   };
 
   const handleSquareClick = (square: string) => {
-    if (mode === "find") {
+    if (mode === "find" || mode === "aivsai") {
       return;
     }
     if (selectedSquare === square) {
       clearSelection();
       return;
     }
-    const chess = mode === "ai" ? aiGameRef.current : new Chess(fen);
+    const chess = isAiMode ? aiGameRef.current : new Chess(fen);
     const piece = chess.get(square);
     if (!piece) {
       clearSelection();
@@ -161,6 +182,9 @@ const ChessBoardView = () => {
   };
 
   const applyMove = (from: string, to: string, promotion?: string): boolean => {
+    if (mode === "aivsai") {
+      return false;
+    }
     if (mode === "ai") {
       const chess = aiGameRef.current;
       const result = chess.move({ from, to, promotion });
@@ -191,13 +215,13 @@ const ChessBoardView = () => {
   };
 
   const handlePieceDrop = (from: string, to: string): boolean => {
-    if (mode === "find") {
+    if (mode === "find" || mode === "aivsai") {
       return false;
     }
     if (mode === "ai" && aiThinking) {
       return false;
     }
-    const chess = mode === "ai" ? aiGameRef.current : new Chess(fen);
+    const chess = isAiMode ? aiGameRef.current : new Chess(fen);
     if (isPromotionMove(chess, from, to)) {
       setPromotionPending({ from, to });
       return false;

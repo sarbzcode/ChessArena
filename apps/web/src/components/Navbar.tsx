@@ -19,6 +19,13 @@ const Navbar = () => {
         </button>
         <button
           type="button"
+          className={`tab-button ${mode === "aivsai" ? "tab-active" : "tab-inactive"}`}
+          onClick={() => setMode("aivsai")}
+        >
+          AIvsAI
+        </button>
+        <button
+          type="button"
           className={`tab-button ${mode === "multiplayer" ? "tab-active" : "tab-inactive"}`}
           onClick={() => setMode("multiplayer")}
         >

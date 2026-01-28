@@ -8,6 +8,14 @@ describe("difficulty settings", () => {
     expect(getSettings("expert")).toMatchObject({ skill: 18, depth: 16, movetime: 900 });
   });
 
+  it("returns maxed expert settings for AIvsAI", () => {
+    expect(getSettings("expert", false, "aivsai")).toMatchObject({
+      skill: 20,
+      depth: 24,
+      movetime: 1500
+    });
+  });
+
   it("returns expected move delays", () => {
     expect(getMoveDelayMs("beginner")).toBe(250);
     expect(getMoveDelayMs("intermediate")).toBe(200);

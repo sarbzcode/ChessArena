@@ -33,9 +33,3 @@ export type ClientToServerEvents = {
   "sync:request": (payload: { roomId: string }) => void;
   "game:resign": (payload: { roomId: string }) => void;
 };
-
-export type InterServerEvents = Record<string, never>;
-
-export type SocketData = {
-  clientId?: string;
-};
