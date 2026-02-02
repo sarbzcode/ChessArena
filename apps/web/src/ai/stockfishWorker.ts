@@ -96,6 +96,12 @@ export function getBestMove(
   difficulty: Difficulty,
   mode: AiMode = "ai"
 ): Promise<{ from: string; to: string; promotion?: string }> {
+  if (typeof SharedArrayBuffer === "undefined" || !globalThis.crossOriginIsolated) {
+    return Promise.reject(
+      new Error("AI is unavailable: missing cross-origin isolation headers (COOP/COEP).")
+    );
+  }
+
   return new Promise((resolve, reject) => {
     sendBestMoveRequest(fen, difficulty, mode, false, resolve, reject);
   });
