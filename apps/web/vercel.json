@@ -1,22 +1,21 @@
-diff --git a/e:\chess Game\AivsAI\apps/web/vercel.json b/e:\chess Game\AivsAI\apps/web/vercel.json
-new file mode 100644
---- /dev/null
-+++ b/e:\chess Game\AivsAI\apps/web/vercel.json
-@@ -0,0 +1,17 @@
-+{
-+  "headers": [
-+    {
-+      "source": "/(.*)",
-+      "headers": [
-+        {
-+          "key": "Cross-Origin-Opener-Policy",
-+          "value": "same-origin"
-+        },
-+        {
-+          "key": "Cross-Origin-Embedder-Policy",
-+          "value": "require-corp"
-+        }
-+      ]
-+    }
-+  ]
-+}
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "require-corp"
+        }
+      ]
+    }
+  ]
+}
+
+
+
+
