@@ -109,7 +109,9 @@ const ChessBoardView = () => {
         queueNextMove = useGameStore.getState().mode === "aivsai" && !chess.isGameOver();
       }
     } catch (error) {
-      useGameStore.getState().setError("AI move failed. Try again.");
+      const message = error instanceof Error ? error.message : "AI move failed. Try again.";
+      useGameStore.getState().setError(message);
+
     } finally {
       setAiThinking(false);
       if (queueNextMove) {
