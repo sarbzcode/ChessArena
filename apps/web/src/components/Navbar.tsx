@@ -7,7 +7,7 @@ const Navbar = () => {
   return (
     <nav className="flex items-center justify-between px-4 py-4 lg:px-10">
       <div className="flex items-center gap-3">
-        <span className="text-lg font-semibold tracking-wide">ChessArena</span>
+        <span className="text-lg font-semibold tracking-wide">ChessArena by SarbzCode</span>
       </div>
       <div className="flex items-center gap-2">
         <button
