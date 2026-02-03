@@ -121,6 +121,11 @@ export const resignGame = (roomId: string) => {
   socket.emit("game:resign", { roomId });
 };
 
+export const requestRematch = (roomId: string) => {
+  ensureConnected();
+  socket.emit("game:rematch", { roomId });
+};
+
 export const requestSync = (roomId: string) => {
   ensureConnected();
   socket.emit("sync:request", { roomId });

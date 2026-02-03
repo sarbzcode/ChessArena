@@ -4,10 +4,11 @@ import MultiplayerControls from "./mode/MultiplayerControls";
 import FindOpponentControls from "./mode/FindOpponentControls";
 import StatusBanner from "./StatusBanner";
 import { useGameStore } from "../store/useGameStore";
-import { createRoom, joinQueue } from "../socket/multiplayer";
+import { createRoom, joinQueue, requestRematch } from "../socket/multiplayer";
 
 const RightPanel = () => {
   const mode = useGameStore((state) => state.mode);
+  const roomId = useGameStore((state) => state.roomId);
   const startAiGame = useGameStore((state) => state.startAiGame);
 
   const handleNewGame = () => {
@@ -16,6 +17,10 @@ const RightPanel = () => {
       return;
     }
     if (mode === "multiplayer") {
+      if (roomId) {
+        requestRematch(roomId);
+        return;
+      }
       createRoom();
       return;
     }
@@ -35,7 +40,7 @@ const RightPanel = () => {
           </div>
         </div>
         <button type="button" className="btn-primary w-full" onClick={handleNewGame}>
-          New Game
+          {mode === "multiplayer" && roomId ? "Rematch" : "New Game"}
         </button>
       </div>
 

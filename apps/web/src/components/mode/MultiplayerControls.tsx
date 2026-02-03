@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useGameStore } from "../../store/useGameStore";
-import { createRoom, joinRoom, resignGame } from "../../socket/multiplayer";
+import { createRoom, joinRoom, requestRematch, resignGame } from "../../socket/multiplayer";
 
 const MultiplayerControls = () => {
   const [roomInput, setRoomInput] = useState("");
@@ -8,6 +8,7 @@ const MultiplayerControls = () => {
   const roomId = useGameStore((state) => state.roomId);
   const myColor = useGameStore((state) => state.myColor);
   const connectionStatus = useGameStore((state) => state.connectionStatus);
+  const canControlGame = Boolean(roomId) && myColor !== "spectator";
 
   const handleCopy = async () => {
     if (!roomId) {
@@ -58,13 +59,24 @@ const MultiplayerControls = () => {
           <p className="text-sm text-white">{connectionStatus}</p>
         </div>
       </div>
-      <button
-        type="button"
-        className="btn-outline w-full"
-        onClick={() => (roomId ? resignGame(roomId) : null)}
-      >
-        Resign
-      </button>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          className="btn-outline w-full disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={() => (roomId ? requestRematch(roomId) : null)}
+          disabled={!canControlGame}
+        >
+          Rematch
+        </button>
+        <button
+          type="button"
+          className="btn-outline w-full disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={() => (roomId ? resignGame(roomId) : null)}
+          disabled={!canControlGame}
+        >
+          Resign
+        </button>
+      </div>
     </div>
   );
 };

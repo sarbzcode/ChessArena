@@ -21,6 +21,7 @@ type RoomJoinPayload = Parameters<ClientToServerEvents["room:join"]>[0];
 type MoveMakePayload = Parameters<ClientToServerEvents["move:make"]>[0];
 type SyncRequestPayload = Parameters<ClientToServerEvents["sync:request"]>[0];
 type GameResignPayload = Parameters<ClientToServerEvents["game:resign"]>[0];
+type GameRematchPayload = Parameters<ClientToServerEvents["game:rematch"]>[0];
 
 const ROOM_ID_LENGTH = 6;
 const ROOM_TTL_MS = 2 * 60 * 1000;
@@ -40,6 +41,7 @@ async function emitRoomStateToSockets(io: TypedServer, room: Room): Promise<void
     const youAre = getPlayerRole(room, clientId);
     socket.emit("room:state", {
       roomId: room.roomId,
+      roomStatus: room.status,
       fen: room.chess.fen(),
       pgn: room.chess.pgn(),
       turn: room.chess.turn(),
@@ -198,6 +200,25 @@ export function registerSocketHandlers(io: TypedServer): void {
       const winner = role === "w" ? "Black" : "White";
       io.to(room.roomId).emit("game:ended", { result: winner, reason: "Resignation" });
       room.status = "ended";
+      touchRoom(room);
+      await emitRoomStateToSockets(io, room);
+    });
+
+    socket.on("game:rematch", async (payload: GameRematchPayload) => {
+      const { roomId } = payload;
+      const room = getRoom(roomId);
+      if (!room) {
+        socket.emit("move:rejected", { reason: "Room not found" });
+        return;
+      }
+      const clientId = getClientId(socket.id, socket);
+      const role = getPlayerRole(room, clientId);
+      if (role === "spectator") {
+        socket.emit("move:rejected", { reason: "Not a player in this room" });
+        return;
+      }
+      room.chess.reset();
+      room.status = room.players.white && room.players.black ? "active" : "waiting";
       touchRoom(room);
       await emitRoomStateToSockets(io, room);
     });

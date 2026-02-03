@@ -1,5 +1,6 @@
 export type PlayerColor = "w" | "b";
 export type PlayerRole = PlayerColor | "spectator";
+export type RoomLifecycleStatus = "waiting" | "active" | "ended";
 
 export type RoomPlayers = {
   white?: string;
@@ -8,6 +9,7 @@ export type RoomPlayers = {
 
 export type RoomState = {
   roomId: string;
+  roomStatus: RoomLifecycleStatus;
   fen: string;
   pgn: string;
   turn: PlayerColor;
@@ -32,4 +34,5 @@ export type ClientToServerEvents = {
   "move:make": (payload: { roomId: string; from: string; to: string; promotion?: string }) => void;
   "sync:request": (payload: { roomId: string }) => void;
   "game:resign": (payload: { roomId: string }) => void;
+  "game:rematch": (payload: { roomId: string }) => void;
 };

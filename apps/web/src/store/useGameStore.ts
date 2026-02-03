@@ -103,7 +103,11 @@ export const useGameStore = create<GameStore>((set, get) => ({
   setServerState: (state) => {
     const current = get();
     const incomingGameOver = isGameOverStatus(state.status);
-    const keepResignation = current.status.includes("Resignation") && current.gameOver && !incomingGameOver;
+    const keepResignation =
+      state.roomStatus === "ended" &&
+      current.status.includes("Resignation") &&
+      current.gameOver &&
+      !incomingGameOver;
     set({
       roomId: state.roomId,
       fen: state.fen,

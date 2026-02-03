@@ -111,7 +111,6 @@ const ChessBoardView = () => {
     } catch (error) {
       const message = error instanceof Error ? error.message : "AI move failed. Try again.";
       useGameStore.getState().setError(message);
-
     } finally {
       setAiThinking(false);
       if (queueNextMove) {
@@ -136,11 +135,22 @@ const ChessBoardView = () => {
     if (mode === "find" || mode === "aivsai") {
       return;
     }
-    if (selectedSquare === square) {
-      clearSelection();
-      return;
-    }
     const chess = isAiMode ? aiGameRef.current : new Chess(fen);
+    if (selectedSquare) {
+      if (selectedSquare === square) {
+        clearSelection();
+        return;
+      }
+      const targetSquares = getMoveTargets(selectedSquare);
+      if (targetSquares.includes(square)) {
+        if (isPromotionMove(chess, selectedSquare, square)) {
+          setPromotionPending({ from: selectedSquare, to: square });
+          return;
+        }
+        applyMove(selectedSquare, square);
+        return;
+      }
+    }
     const piece = chess.get(square);
     if (!piece) {
       clearSelection();
