@@ -2,7 +2,7 @@
 import Stockfish from "stockfish.wasm";
 import mainScriptUrl from "stockfish.wasm/stockfish.js?url";
 import wasmUrl from "stockfish.wasm/stockfish.wasm?url";
-import workerUrl from "stockfish.wasm/stockfish.worker.js?url";
+import workerUrl from "stockfish.wasm/stockfish.worker.js?url&no-inline";
 import { getSettings, Difficulty, AiMode } from "./difficulty";
 
 type WorkerRequest = {
